@@ -147,3 +147,7 @@ char *extract_token(char *str) {
 
     return data;
 }
+char *extract_json_array(char *str)
+{
+    return strstr(str, "[{\"");
+}

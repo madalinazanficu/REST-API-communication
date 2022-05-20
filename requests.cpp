@@ -9,7 +9,8 @@
 #include "helpers.h"
 #include "requests.h"
 
-char *compute_get_request(char *host, char *url, char *query_params, char *cookie)
+char *compute_get_request(char *host, char *url, char *query_params,
+                            char *cookie, char *JWT_token)
 {
     char *message = (char *)calloc(BUFLEN, sizeof(char));
     char *line = (char *)calloc(LINELEN, sizeof(char));
@@ -20,7 +21,6 @@ char *compute_get_request(char *host, char *url, char *query_params, char *cooki
     } else {
         sprintf(line, "GET %s HTTP/1.1", url);
     }
-
     compute_message(message, line);
 
     // Step 2: add the host
@@ -28,34 +28,30 @@ char *compute_get_request(char *host, char *url, char *query_params, char *cooki
     sprintf(line, "Host: %s", host);
     compute_message(message, line);
 
-    // Step 3: add cookie according to the protocol format
-    memset(line, 0, LINELEN);
-    strcat(line, "Cookie: ");
-    strcat(line, cookie);
-    compute_message(message, line);
+    // Step 3: add the authorization
+    if (JWT_token != NULL) {
+        memset(line, 0, LINELEN);
+        sprintf(line, "Authorization: Bearer ");
+        strcat(line, JWT_token);
+        compute_message(message, line);
+    }
 
+    // Step 4: add cookie according to the protocol format
+    if (cookie != NULL) {
+        memset(line, 0, LINELEN);
+        strcat(line, "Cookie: ");
+        strcat(line, cookie);
+        compute_message(message, line);
+    }
 
-    // Step 3 (optional): add headers and/or cookies, according to the protocol format
-    // if (cookies != NULL) {
-    //     memset(line, 0, LINELEN);
-    //     strcat(line, "Cookie: ");
-
-    //     for (int i = 0; i < cookies_count - 1; i++) {
-    //         strcat(line, cookies[i]);
-    //         strcat(line, ";");
-    //     }
-
-    //     strcat(line, cookies[cookies_count - 1]);
-    //     compute_message(message, line);
-    // }
-
-    // Step 4: add final new line
+    // Step 5: add final new line
     compute_message(message, "");
     return message;
 }
 
 char *compute_post_request(char *host, char *url, char* content_type, char *body_data,
-                            int body_data_fields_count, char **cookies, int cookies_count)
+                            int body_data_fields_count, char **cookies,
+                            int cookies_count, char *JWT_token)
 {
     char *message = (char *)calloc(BUFLEN, sizeof(char));
     char *line = (char *)calloc(LINELEN, sizeof(char));
@@ -69,6 +65,14 @@ char *compute_post_request(char *host, char *url, char* content_type, char *body
     memset(line, 0, LINELEN);
     sprintf(line, "Host: %s", host);
     compute_message(message, line);
+
+    // Step 3: add the authorization
+    if (JWT_token != NULL) {
+        memset(line, 0, LINELEN);
+        sprintf(line, "Authorization: Bearer ");
+        strcat(line, JWT_token);
+        compute_message(message, line);
+    }
     
     // Compute the length of the data for step3
     strcat(body_data_buffer, body_data);
@@ -101,5 +105,31 @@ char *compute_post_request(char *host, char *url, char* content_type, char *body
 
     free(line);
     free(body_data_buffer);
+    return message;
+}
+
+char *compute_delete_request(char *host, char *url, char *JWT_token) {
+
+    char *message = (char *)calloc(BUFLEN, sizeof(char));
+    char *line = (char *)calloc(LINELEN, sizeof(char));
+
+    // Step 1: write the method name, URL and protocol type
+    sprintf(line, "DELETE %s HTTP/1.1", url);
+    compute_message(message, line);
+
+    // Step 2: add the host
+    memset(line, 0, LINELEN);
+    sprintf(line, "Host: %s", host);
+    compute_message(message, line);
+
+    // Step 3: add the authorization
+    if (JWT_token != NULL) {
+        memset(line, 0, LINELEN);
+        sprintf(line, "Authorization: Bearer ");
+        strcat(line, JWT_token);
+        compute_message(message, line);
+    }
+    // Step 4: add final new line
+    compute_message(message, "");
     return message;
 }

@@ -31,4 +31,6 @@ char *extract_json_cookie(char *str);
 // extracts and returns the token
 char *extract_token(char *str);
 
+char *extract_json_array(char *str);
+
 #endif

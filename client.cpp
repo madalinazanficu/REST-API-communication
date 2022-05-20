@@ -71,23 +71,79 @@ void read_commands() {
             token = execute_enter_library(sockfd, url, cookie);
         }
         if (command.compare("get_books") == 0) {
-            execute_get_books();
+            int flag = 0;
+            cout << "GET BOOKS\n";
+            char url[28] = "/api/v1/tema/library/books";
+            execute_get_books(sockfd, url, token, flag);
         }
         if (command.compare("get_book") == 0) {
-            execute_get_book();
+            int flag = 1;
+            cout << "GET BOOK\n";
+            cout << "Enter id:\n";
+
+            string buffer_id;
+            getline(cin, buffer_id);
+            if (check_id(buffer_id) == true) {
+                char url[40] = "/api/v1/tema/library/books/";
+                strcat(url, buffer_id.c_str());
+                url[strlen(url)] = '\0';
+
+                execute_get_books(sockfd, url, token, flag);
+            }
         }
         if (command.compare("add_book") == 0) {
-            execute_add_book();
+            cout << "ADD BOOK\n";
+            cout << "title:\n";
+            string title;
+            getline(cin, title);
+
+            cout << "author:\n";
+            string author;
+            getline(cin, author);
+
+            cout << "genre:\n";
+            string genre;
+            getline(cin, genre);
+
+            cout << "publisher:\n";
+            string publisher;
+            getline(cin, publisher);
+
+            cout << "page_count:\n";
+            string buff_page_count;
+            getline(cin, buff_page_count);
+
+            // Checking the format for the page count
+            if (check_page_count(buff_page_count) == true) {
+                int page_count = stoi(buff_page_count);
+
+                char url[28] = "/api/v1/tema/library/books";
+                char type[18] = "application/json";
+
+                execute_add_book(sockfd, url, type, token, title,
+                            author, genre, page_count, publisher);
+            }
         }
         if (command.compare("delete_book") == 0) {
-            execute_delete_book();
+            cout << "Enter id:\n";
+            string buffer_id;
+            getline(cin, buffer_id);
+            if (check_id(buffer_id) == true) {
+                int id = stoi(buffer_id);
+                char url[40] = "/api/v1/tema/library/books/";
+                strcat(url, buffer_id.c_str());
+                execute_delete_book(sockfd, url, token, id);
+            }
         }
         if (command.compare("logout") == 0) {
-            execute_logout();
+            cout << "Logout\n";
+            char url[28] = "/api/v1/tema/auth/logout";
+            execute_logout(sockfd, url, cookie);
+            cookie = nullptr;
+            token = nullptr;
         }
         if (command.compare("exit") == 0) {
             cout << "Exit\n";
-            execute_exit();
             exit = true;
             break;
         }
